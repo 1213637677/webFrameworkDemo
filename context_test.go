@@ -32,6 +32,6 @@ func TestContext(t *testing.T) {
 			ctx.WriteJson(http.StatusBadRequest, err)
 		}
 	}
-	svr.Route("/user/create", createUser)
+	svr.Route(http.MethodPost, "/user", createUser)
 	svr.Start(":10228")
 }

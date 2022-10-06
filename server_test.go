@@ -3,6 +3,7 @@ package webframework_test
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"testing"
 	"webframework"
 )
@@ -19,7 +20,7 @@ func TestSdkHttpServerRequestBody(t *testing.T) {
 		fmt.Fprintf(ctx.W, "read body: %s", string(body))
 	}
 
-	svr.Route("/body", getBody)
+	svr.Route(http.MethodGet, "/body", getBody)
 	svr.Start("127.0.0.1:10228")
 }
 
@@ -30,7 +31,7 @@ func TestSdkHttpServerRequestQuery(t *testing.T) {
 		fmt.Fprintf(ctx.W, "query: %v", query)
 	}
 
-	svr.Route("/query", getQuery)
+	svr.Route(http.MethodGet, "/query", getQuery)
 	svr.Start("127.0.0.1:10228")
 }
 
@@ -42,6 +43,6 @@ func TestSdkHttpServerRequestHeader(t *testing.T) {
 		fmt.Fprintf(ctx.W, "header: %v", header)
 	}
 
-	svr.Route("/header", getHeader)
+	svr.Route(http.MethodGet, "/header", getHeader)
 	svr.Start("127.0.0.1:10228")
 }
