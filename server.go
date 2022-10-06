@@ -4,7 +4,7 @@ import "net/http"
 
 type Server interface {
 	// Route 定义路由并执行 handleFunc 方法
-	Route(pattern string, handleFunc http.HandlerFunc)
+	Route(pattern string, handleFunc func(ctx *Context))
 	// Start 启动服务
 	Start(address string)
 }
@@ -14,8 +14,11 @@ type SdkHttpServer struct {
 }
 
 // Route 定义路由并执行 handleFunc 方法
-func (s *SdkHttpServer) Route(pattern string, handleFunc http.HandlerFunc) {
-	http.Handle(pattern, handleFunc)
+func (s *SdkHttpServer) Route(pattern string, handleFunc func(ctx *Context)) {
+	http.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
+		ctx := NewContext(w, r)
+		handleFunc(ctx)
+	})
 }
 
 // Start 启动服务

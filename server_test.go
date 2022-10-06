@@ -3,7 +3,6 @@ package webframework_test
 import (
 	"fmt"
 	"io"
-	"net/http"
 	"testing"
 	"webframework"
 )
@@ -11,13 +10,13 @@ import (
 func TestSdkHttpServerRequestBody(t *testing.T) {
 	svr := webframework.NewHttpServer("test")
 
-	getBody := func(w http.ResponseWriter, r *http.Request) {
-		body, err := io.ReadAll(r.Body)
+	getBody := func(ctx *webframework.Context) {
+		body, err := io.ReadAll(ctx.R.Body)
 		if err != nil {
-			fmt.Fprintf(w, "read body failed, error: %v", err)
+			fmt.Fprintf(ctx.W, "read body failed, error: %v", err)
 			return
 		}
-		fmt.Fprintf(w, "read body: %s", string(body))
+		fmt.Fprintf(ctx.W, "read body: %s", string(body))
 	}
 
 	svr.Route("/body", getBody)
@@ -26,9 +25,9 @@ func TestSdkHttpServerRequestBody(t *testing.T) {
 
 func TestSdkHttpServerRequestQuery(t *testing.T) {
 	svr := webframework.NewHttpServer("test")
-	getQuery := func(w http.ResponseWriter, r *http.Request) {
-		query := r.URL.Query()
-		fmt.Fprintf(w, "query: %v", query)
+	getQuery := func(ctx *webframework.Context) {
+		query := ctx.R.URL.Query()
+		fmt.Fprintf(ctx.W, "query: %v", query)
 	}
 
 	svr.Route("/query", getQuery)
@@ -38,9 +37,9 @@ func TestSdkHttpServerRequestQuery(t *testing.T) {
 func TestSdkHttpServerRequestHeader(t *testing.T) {
 	svr := webframework.NewHttpServer("test")
 
-	getHeader := func(w http.ResponseWriter, r *http.Request) {
-		header := r.Header
-		fmt.Fprintf(w, "header: %v", header)
+	getHeader := func(ctx *webframework.Context) {
+		header := ctx.R.Header
+		fmt.Fprintf(ctx.W, "header: %v", header)
 	}
 
 	svr.Route("/header", getHeader)
