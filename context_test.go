@@ -17,7 +17,6 @@ func TestContext(t *testing.T) {
 	svr := webframework.NewHttpServer("test")
 	userMap := make(map[string]*user)
 	createUser := func(ctx *webframework.Context) {
-		fmt.Println("start")
 		newUser := &user{}
 		err := ctx.ReadJson(newUser)
 		if err != nil {

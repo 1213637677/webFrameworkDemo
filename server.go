@@ -15,7 +15,7 @@ type SdkHttpServer struct {
 }
 
 // Route 定义路由并执行 handleFunc 方法
-func (s *SdkHttpServer) Route(method string, pattern string, handleFunc func(ctx *Context)) {
+func (s *SdkHttpServer) Route(method string, pattern string, handleFunc handlerFunc) {
 	s.handler.Route(method, pattern, handleFunc)
 }
 
@@ -29,7 +29,7 @@ func (s *SdkHttpServer) Start(address string) {
 }
 
 func NewHttpServer(name string, builders ...FilterBuilder) Server {
-	handler := NewHandlerBasedOnMap()
+	handler := NewHandlerBasedOnTree()
 	var root Filter = handler.ServeHTTP
 	for i := len(builders) - 1; i >= 0; i-- {
 		b := builders[i]
