@@ -11,7 +11,7 @@ type Routable interface {
 }
 
 type Handler interface {
-	http.Handler
+	ServeHTTP(c *Context)
 	Routable
 }
 
@@ -19,15 +19,14 @@ type HandlerBasedOnMap struct {
 	handlers map[string]func(*Context)
 }
 
-func (h *HandlerBasedOnMap) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	key := h.key(r.Method, r.URL.Path)
+func (h *HandlerBasedOnMap) ServeHTTP(c *Context) {
+	key := h.key(c.R.Method, c.R.URL.Path)
 	if handler, ok := h.handlers[key]; ok {
-		ctx := NewContext(w, r)
-		handler(ctx)
+		handler(c)
 		return
 	}
-	w.WriteHeader(http.StatusNotFound)
-	w.Write([]byte("not found pattern"))
+	c.W.WriteHeader(http.StatusNotFound)
+	c.W.Write([]byte("not found pattern"))
 }
 
 func (h *HandlerBasedOnMap) key(method string, pattern string) string {
