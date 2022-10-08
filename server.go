@@ -15,8 +15,8 @@ type SdkHttpServer struct {
 }
 
 // Route 定义路由并执行 handleFunc 方法
-func (s *SdkHttpServer) Route(method string, pattern string, handleFunc handlerFunc) {
-	s.handler.Route(method, pattern, handleFunc)
+func (s *SdkHttpServer) Route(method string, pattern string, handleFunc handlerFunc) error {
+	return s.handler.Route(method, pattern, handleFunc)
 }
 
 // Start 启动服务

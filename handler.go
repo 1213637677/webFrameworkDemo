@@ -1,6 +1,7 @@
 package webframework
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -8,7 +9,7 @@ import (
 
 type Routable interface {
 	// Route 定义路由并执行 handleFunc 方法
-	Route(method string, pattern string, handleFunc handlerFunc)
+	Route(method string, pattern string, handleFunc handlerFunc) error
 }
 
 type Handler interface {
@@ -35,9 +36,10 @@ func (h *HandlerBasedOnMap) key(method string, pattern string) string {
 }
 
 // Route 定义路由并执行 handleFunc 方法
-func (h *HandlerBasedOnMap) Route(method string, pattern string, handleFunc handlerFunc) {
+func (h *HandlerBasedOnMap) Route(method string, pattern string, handleFunc handlerFunc) error {
 	key := h.key(method, pattern)
 	h.handlers[key] = handleFunc
+	return nil
 }
 
 func NewHandlerBasedOnMap() Handler {
@@ -66,6 +68,9 @@ func (h *HandlerBasedOnTree) ServeHTTP(c *Context) {
 	for _, path := range paths {
 		if child, ok := cur.findMatchChild(path); ok {
 			cur = child
+			if child.path == "*" {
+				break
+			}
 		} else {
 			c.W.WriteHeader(http.StatusNotFound)
 			c.W.Write([]byte("not found"))
@@ -81,28 +86,52 @@ func (h *HandlerBasedOnTree) ServeHTTP(c *Context) {
 }
 
 // Route 定义路由并执行 handleFunc 方法
-func (h *HandlerBasedOnTree) Route(method string, pattern string, handleFunc handlerFunc) {
+func (h *HandlerBasedOnTree) Route(method string, pattern string, handleFunc handlerFunc) error {
+	err := h.validatePattern(pattern)
+	if err != nil {
+		return err
+	}
 	pattern = strings.Trim(pattern, "/")
 	paths := strings.Split(pattern, "/")
 	cur := h.root
 	for idx, path := range paths {
 		matchChild, ok := cur.findMatchChild(path)
-		if ok {
+		if ok && matchChild.path != "*" {
 			cur = matchChild
 		} else {
 			cur.createSubTree(paths[idx:], handleFunc)
 			break
 		}
 	}
+	return nil
+}
+
+var ErrorInvalidRouterPattern = errors.New("invalid router pattern")
+
+func (h *HandlerBasedOnTree) validatePattern(pattern string) error {
+	pos := strings.Index(pattern, "*")
+	if pos > 0 {
+		if pos != len(pattern)-1 {
+			return ErrorInvalidRouterPattern
+		}
+		if pattern[pos-1] != '/' {
+			return ErrorInvalidRouterPattern
+		}
+	}
+	return nil
 }
 
 func (n *node) findMatchChild(path string) (*node, bool) {
+	var wildcardNode *node
 	for _, child := range n.children {
-		if child.path == path {
+		if child.path == path && child.path != "*" {
 			return child, true
 		}
+		if child.path == "*" {
+			wildcardNode = child
+		}
 	}
-	return nil, false
+	return wildcardNode, wildcardNode != nil
 }
 
 func (n *node) createSubTree(paths []string, handlerFunc handlerFunc) {
