@@ -1,11 +1,16 @@
 package webframework
 
-import "net/http"
+import (
+	"context"
+	"fmt"
+	"net/http"
+)
 
 type Server interface {
 	Routable
 	// Start 启动服务
 	Start(address string)
+	Shutdown(c context.Context) error
 }
 
 type SdkHttpServer struct {
@@ -26,6 +31,13 @@ func (s *SdkHttpServer) Start(address string) {
 		s.root(c)
 	})
 	http.ListenAndServe(address, nil)
+}
+
+func (s *SdkHttpServer) Shutdown(c context.Context) error {
+	fmt.Println("server begin shutdown")
+	// server shutdown 逻辑
+	fmt.Println("server shutdown finish")
+	return nil
 }
 
 func NewHttpServer(name string, builders ...FilterBuilder) Server {
